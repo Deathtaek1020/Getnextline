@@ -1,0 +1,182 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line_utils.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: zorazafi <zorazafi@student.42antananari    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/21 14:54:23 by zorazafi          #+#    #+#             */
+/*   Updated: 2025/07/21 15:39:17 by zorazafi         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+size_t ft_strlen(const char *str)
+{
+    size_t i;
+
+    i = 0;
+    while (str[i])
+        i++;
+    return (i);
+}
+char *ft_strchr(const char *str, int c)
+{
+    int i;
+
+    i = 0;
+    while (str[i])
+    {
+        if (str[i] == (char)(c))
+            return ((char *)&str[i]);
+        i++;
+    }
+    if (str[i] == (char)(c))
+        return ((char *)&str[i]);
+    return (NULL);
+}
+
+// int main(void)
+// {
+//     char *test = "Hello World";
+//     char *result;
+
+//     result = ft_strchr(test, 'o');
+//     if (result)
+//         printf("'o' trouvé à la position %ld\n", result - test);
+//     else
+//         printf("'o' non trouvé\n");
+// }
+
+char *ft_strdup(const char *str)
+{
+    char    *temp;
+    int     i;
+    int     lenght;
+
+	i = 0;
+    lenght = ft_strlen(str);
+    temp = malloc((lenght + 1) * sizeof(char));
+    if (!temp)
+        return (NULL);
+    while(str[i])
+    {
+        temp[i] = str[i];
+        i++;
+    }
+    temp[i] = str[i];
+    return (temp);
+}
+
+// int main(void)
+// {
+//     char *one = "hehehehe";
+//     char *two = ft_strdup(one);
+
+//     printf("le truc est : %s", two);
+// }
+
+// int main()
+// {
+//     printf("Longueur de 'Hello': %zu\n", ft_strlen("Hello"));
+
+//     char *found = ft_strchr("Hello World", 'W');
+//     if (found)
+//         printf("Trouvé 'W' à: %s\n", found);
+
+//     char *copy = ft_strdup("Test");
+//     if (copy)
+//     {
+//         printf("Copie: %s\n", copy);
+//         free(copy);
+//     }
+//     return 0;
+// }
+
+char *ft_substr(char const *s, unsigned int start, size_t len)
+{
+    char    *temp;
+    size_t  i;
+    size_t  s_len;
+
+    i = 0;
+    if (!s)
+        return(NULL);
+    s_len = ft_strlen(s);
+    if (start >= s_len)
+        return (ft_strdup(""));
+    if (len > s_len - start)
+        len = s_len - start;
+    temp = malloc((len + 1) * sizeof(char));
+    if (!temp)
+        return (NULL);
+    while (i < len)
+    {
+        temp[i] = s[start + i];
+        i++;
+    }
+    temp[i] = '\0';
+    return (temp);
+}
+
+// int main(void)
+// {
+//     printf("%s", ft_substr("Babakotouiii", 4, 4));
+// }
+
+char *ft_strjoin(char const *s1, char const *s2)
+{
+	size_t	total_len;
+	size_t	i;
+	size_t	j;
+	char	*temp;
+
+	i = 0;
+	j = 0;
+	if (!s1 || !s2)
+		return (NULL);
+	total_len = ft_strlen(s1) + ft_strlen(s2);
+	temp = malloc((total_len + 1) * sizeof(char));
+	if (!temp)
+		return (NULL);
+	while (s1[i])
+	{
+		temp[i] = s1[i];
+		i++;
+	}
+	while (s2[j])
+	{
+		temp[i + j] = s2[j];
+		j++;
+	}
+	temp[i + j] = '\0';
+	return (temp);
+}
+
+
+int main()
+{
+    char *buffer = ft_strdup("Hello\nWorld\n");
+
+    // Simule : extraire "Hello" et garder "World\n"
+    char *newline_pos = ft_strchr(buffer, '\n');
+    if (newline_pos)
+    {
+        int line_len = newline_pos - buffer;
+        char *line = ft_substr(buffer, 0, line_len);
+        char *remaining = ft_strdup(newline_pos + 1);
+
+        printf("Ligne extraite: '%s'\n", line);
+        printf("Reste: '%s'\n", remaining);
+
+        free(line);
+        free(remaining);
+    }
+    free(buffer);
+
+    return 0;
+}
