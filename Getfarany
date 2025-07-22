@@ -1,0 +1,135 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: zorazafi <zorazafi@student.42antananari    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/22 08:50:06 by zorazafi          #+#    #+#             */
+/*   Updated: 2025/07/22 14:59:49 by zorazafi         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <stdio.h>
+
+#ifndef BUFFER_SIZE
+# define BUFFER_SIZE 32
+#endif
+
+size_t	ft_strlen(char const *s);
+char	*ft_strdup(char const *s);
+char	*ft_strchr(char const *s, int c);
+char	*ft_substr(char const *s, unsigned int start, size_t len);
+char	*ft_strjoin(char const *s1, char const *s2);
+
+static int	ft_extract_line(char **stash, char **line)
+{
+    char	*newline_pos;
+    char	*rest;
+    size_t	line_len;
+
+    if (!*stash || !**stash)
+        return (0);
+    newline_pos = ft_strchr(*stash, '\n');
+    if (newline_pos)
+    {
+        line_len = newline_pos - *stash;
+        *line = ft_substr(*stash, 0, line_len);
+        rest = ft_strdup(newline_pos + 1);
+        free(*stash);
+        *stash = rest;
+        return (1);
+    }
+    *line = ft_strdup(*stash);
+    free(*stash);
+    *stash = NULL;
+    return (1);
+}
+
+static int	fill_stash(int fd, char **stash)
+{
+    char	*buffer;
+    char	*joined;
+    ssize_t	bytes_read;
+
+    buffer = malloc(BUFFER_SIZE + 1);
+    if (!buffer)
+        return (-1);
+    bytes_read = read(fd, buffer, BUFFER_SIZE);
+    while (bytes_read > 0)
+    {
+        buffer[bytes_read] = '\0';
+        if (!*stash)
+            *stash = ft_strdup(buffer);
+        else
+        {
+            joined = ft_strjoin(*stash, buffer);
+            free(*stash);
+            *stash = joined;
+        }
+        if (!*stash || ft_strchr(*stash, '\n'))
+            break ;
+        bytes_read = read(fd, buffer, BUFFER_SIZE);
+    }
+    free(buffer);
+    return (bytes_read < 0 ? -1 : 0);
+}
+
+char	*get_next_line(int fd)
+{
+    static char	*stash;
+    char		*line;
+    int			ret;
+
+    if (fd < 0 || BUFFER_SIZE <= 0)
+        return (NULL);
+    if (!stash || !ft_strchr(stash, '\n'))
+    {
+        ret = fill_stash(fd, &stash);
+        if (ret == -1)
+        {
+            if (stash)
+            {
+                free(stash);
+                stash = NULL;
+            }
+            return (NULL);
+        }
+    }
+    if (!stash || !*stash)
+        return (NULL);
+    ret = ft_extract_line(&stash, &line);
+    if (ret == 1)
+        return (line);
+    return (NULL);
+}
+
+int	main(void)
+{
+    int		fd;
+    char	*line;
+    int		line_count;
+
+    fd = open("test.txt", O_RDONLY);
+    if (fd == -1)
+    {
+        printf("Error: Cannot open file test.txt\n");
+        return (1);
+    }
+    line_count = 1;
+    printf("Reading file line by line:\n");
+    printf("-------------------------\n");
+    while ((line = get_next_line(fd)) != NULL)
+    {
+        printf("Line %d: [%s]\n", line_count, line);
+        free(line);
+        line_count++;
+    }
+    printf("-------------------------\n");
+    printf("End of file. Total lines read: %d\n", line_count - 1);
+    close(fd);
+    return (0);
+}
